@@ -35,6 +35,12 @@ class AddEditTodoViewModel(
     private val _priority = MutableStateFlow(Priority.Medium)
     val priority: StateFlow<Priority> = _priority.asStateFlow()
 
+    private val _isRecurring = MutableStateFlow(false)
+    val isRecurring: StateFlow<Boolean> = _isRecurring.asStateFlow()
+
+    private val _recurrenceRule = MutableStateFlow("WEEKLY")
+    val recurrenceRule: StateFlow<String> = _recurrenceRule.asStateFlow()
+
     private val _isSaving = MutableStateFlow(false)
     val isSaving: StateFlow<Boolean> = _isSaving.asStateFlow()
 
@@ -49,6 +55,8 @@ class AddEditTodoViewModel(
                 _dueDate.value = todo.dueDate
                 _dueTime.value = todo.dueTime
                 _priority.value = todo.priority
+                _isRecurring.value = todo.isRecurring
+                _recurrenceRule.value = todo.recurrenceRule ?: "WEEKLY"
             }
         }
     }
@@ -58,6 +66,8 @@ class AddEditTodoViewModel(
     fun updateDueDate(value: LocalDate?) { _dueDate.value = value }
     fun updateDueTime(value: LocalTime?) { _dueTime.value = value }
     fun updatePriority(value: Priority) { _priority.value = value }
+    fun updateIsRecurring(value: Boolean) { _isRecurring.value = value }
+    fun updateRecurrenceRule(value: String) { _recurrenceRule.value = value }
 
     private fun validate(): Boolean = _title.value.isNotBlank()
 
@@ -72,6 +82,8 @@ class AddEditTodoViewModel(
                     dueDate = _dueDate.value,
                     dueTime = _dueTime.value,
                     priority = _priority.value,
+                    isRecurring = _isRecurring.value,
+                    recurrenceRule = if (_isRecurring.value) _recurrenceRule.value else null,
                 )
             } else {
                 val existing = getTodo(todoId) ?: return@launch
@@ -82,6 +94,8 @@ class AddEditTodoViewModel(
                         dueDate = _dueDate.value,
                         dueTime = _dueTime.value,
                         priority = _priority.value,
+                        isRecurring = _isRecurring.value,
+                        recurrenceRule = if (_isRecurring.value) _recurrenceRule.value else null,
                     )
                 )
             }

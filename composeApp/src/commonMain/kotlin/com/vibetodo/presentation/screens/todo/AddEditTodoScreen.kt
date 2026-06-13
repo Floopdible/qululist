@@ -11,6 +11,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.DatePicker
 import androidx.compose.material3.DatePickerDialog
@@ -24,6 +25,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.TimePicker
@@ -39,20 +41,20 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
-import cafe.adriel.voyager.core.screen.Screen
 import cafe.adriel.voyager.core.model.rememberScreenModel
-import com.vibetodo.domain.repository.TodoRepository
-import com.vibetodo.domain.usecase.CreateTodoUseCase
-import com.vibetodo.domain.usecase.UpdateTodoUseCase
-import org.koin.compose.koinInject
+import cafe.adriel.voyager.core.screen.Screen
 import cafe.adriel.voyager.navigator.LocalNavigator
 import cafe.adriel.voyager.navigator.currentOrThrow
 import com.vibetodo.domain.model.Priority
+import com.vibetodo.domain.repository.TodoRepository
+import com.vibetodo.domain.usecase.CreateTodoUseCase
+import com.vibetodo.domain.usecase.UpdateTodoUseCase
 import kotlinx.datetime.Clock
-import kotlinx.datetime.LocalDate
 import kotlinx.datetime.LocalTime
+import kotlinx.datetime.TimeZone
 import kotlinx.datetime.atStartOfDayIn
 import kotlinx.datetime.toLocalDateTime
+import org.koin.compose.koinInject
 
 data class AddEditTodoScreen(val todoId: String? = null) : Screen {
 
@@ -69,12 +71,15 @@ data class AddEditTodoScreen(val todoId: String? = null) : Screen {
         val dueDate by screenModel.dueDate.collectAsState()
         val dueTime by screenModel.dueTime.collectAsState()
         val priority by screenModel.priority.collectAsState()
+        val isRecurring by screenModel.isRecurring.collectAsState()
+        val recurrenceRule by screenModel.recurrenceRule.collectAsState()
         val isSaving by screenModel.isSaving.collectAsState()
         val isSaved by screenModel.isSaved.collectAsState()
 
         var showDatePicker by remember { mutableStateOf(false) }
         var showTimePicker by remember { mutableStateOf(false) }
         var priorityExpanded by remember { mutableStateOf(false) }
+        var recurringExpanded by remember { mutableStateOf(false) }
 
         if (isSaved) {
             navigator.pop()
@@ -153,6 +158,46 @@ data class AddEditTodoScreen(val todoId: String? = null) : Screen {
                     }
                 }
 
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.CenterVertically,
+                ) {
+                    Text("Recurring", style = MaterialTheme.typography.bodyLarge)
+                    Switch(
+                        checked = isRecurring,
+                        onCheckedChange = screenModel::updateIsRecurring,
+                    )
+                }
+
+                if (isRecurring) {
+                    val recurrenceOptions = listOf("DAILY" to "Daily", "WEEKLY" to "Weekly", "MONTHLY" to "Monthly", "YEARLY" to "Yearly")
+                    ExposedDropdownMenuBox(
+                        expanded = recurringExpanded,
+                        onExpandedChange = { recurringExpanded = !recurringExpanded },
+                    ) {
+                        OutlinedTextField(
+                            value = recurrenceOptions.first { it.first == recurrenceRule }.second,
+                            onValueChange = {},
+                            readOnly = true,
+                            label = { Text("Repeat") },
+                            trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = recurringExpanded) },
+                            modifier = Modifier.fillMaxWidth().menuAnchor(),
+                        )
+                        ExposedDropdownMenu(expanded = recurringExpanded, onDismissRequest = { recurringExpanded = false }) {
+                            recurrenceOptions.forEach { (code, label) ->
+                                DropdownMenuItem(
+                                    text = { Text(label) },
+                                    onClick = {
+                                        screenModel.updateRecurrenceRule(code)
+                                        recurringExpanded = false
+                                    },
+                                )
+                            }
+                        }
+                    }
+                }
+
                 Spacer(Modifier.weight(1f))
 
                 Button(
@@ -200,7 +245,7 @@ data class AddEditTodoScreen(val todoId: String? = null) : Screen {
                 initialMinute = dueTime?.minute ?: 0,
                 is24Hour = true,
             )
-            androidx.compose.material3.AlertDialog(
+            AlertDialog(
                 onDismissRequest = { showTimePicker = false },
                 title = { Text("Select Time") },
                 text = { TimePicker(state = timeState) },
