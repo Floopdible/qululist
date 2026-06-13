@@ -1,0 +1,41 @@
+CREATE TABLE TodoEntity (
+    id TEXT NOT NULL PRIMARY KEY,
+    title TEXT NOT NULL,
+    description TEXT NOT NULL DEFAULT '',
+    dueDate INTEGER,
+    dueTimeMinutes INTEGER,
+    priority TEXT NOT NULL DEFAULT 'Medium',
+    categoryId TEXT,
+    isCompleted INTEGER NOT NULL DEFAULT 0,
+    isRecurring INTEGER NOT NULL DEFAULT 0,
+    recurrenceRule TEXT,
+    createdAt INTEGER NOT NULL,
+    updatedAt INTEGER NOT NULL
+);
+
+selectAll:
+SELECT * FROM TodoEntity ORDER BY updatedAt DESC;
+
+selectById:
+SELECT * FROM TodoEntity WHERE id = ?;
+
+selectByCompletion:
+SELECT * FROM TodoEntity WHERE isCompleted = ? ORDER BY updatedAt DESC;
+
+selectByPriority:
+SELECT * FROM TodoEntity WHERE priority = ? ORDER BY updatedAt DESC;
+
+searchByTitle:
+SELECT * FROM TodoEntity WHERE title LIKE '%' || ? || '%' ORDER BY updatedAt DESC;
+
+insert:
+INSERT INTO TodoEntity(id, title, description, dueDate, dueTimeMinutes, priority, categoryId, isCompleted, isRecurring, recurrenceRule, createdAt, updatedAt)
+VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);
+
+update:
+UPDATE TodoEntity
+SET title = ?, description = ?, dueDate = ?, dueTimeMinutes = ?, priority = ?, categoryId = ?, isCompleted = ?, isRecurring = ?, recurrenceRule = ?, updatedAt = ?
+WHERE id = ?;
+
+deleteById:
+DELETE FROM TodoEntity WHERE id = ?;
