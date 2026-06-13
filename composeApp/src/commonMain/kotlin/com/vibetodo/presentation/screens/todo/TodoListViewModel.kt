@@ -7,9 +7,11 @@ import com.vibetodo.domain.repository.TodoRepository
 import com.vibetodo.domain.usecase.CreateTodoUseCase
 import com.vibetodo.domain.usecase.DeleteTodoUseCase
 import com.vibetodo.domain.usecase.ToggleTodoUseCase
+import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.stateIn
@@ -27,6 +29,9 @@ class TodoListViewModel(
 
     private val _filter = MutableStateFlow(TodoFilter.All)
     val filter: StateFlow<TodoFilter> = _filter.asStateFlow()
+
+    private val _snackbarMessage = MutableSharedFlow<String>(extraBufferCapacity = 1)
+    val snackbarMessage = _snackbarMessage.asSharedFlow()
 
     val todos: StateFlow<List<Todo>> = combine(
         repository.getAllTodos(),
@@ -55,16 +60,24 @@ class TodoListViewModel(
     }
 
     fun toggleCompletion(id: String) {
-        screenModelScope.launch { toggleTodoUseCase(id) }
+        screenModelScope.launch {
+            toggleTodoUseCase(id)
+        }
     }
 
     fun deleteTodo(id: String) {
-        screenModelScope.launch { deleteTodoUseCase(id) }
+        screenModelScope.launch {
+            deleteTodoUseCase(id)
+            _snackbarMessage.tryEmit("Todo deleted")
+        }
     }
 
     fun createQuickTodo(title: String) {
         if (title.isBlank()) return
-        screenModelScope.launch { createTodoUseCase(title = title) }
+        screenModelScope.launch {
+            createTodoUseCase(title = title)
+            _snackbarMessage.tryEmit("Todo created")
+        }
     }
 
     fun getTodoById(id: String): Todo? = repository.getTodoById(id)

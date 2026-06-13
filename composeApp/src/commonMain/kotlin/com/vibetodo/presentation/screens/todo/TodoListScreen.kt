@@ -1,5 +1,10 @@
 package com.vibetodo.presentation.screens.todo
 
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.slideInVertically
+import androidx.compose.animation.slideOutVertically
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.layout.Arrangement
@@ -32,11 +37,14 @@ import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.SnackbarHost
+import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -77,6 +85,13 @@ class TodoListScreen : Screen {
         val filter by vm.filter.collectAsState()
         var showQuickAdd by remember { mutableStateOf(false) }
         var quickAddText by remember { mutableStateOf("") }
+        val snackbarHostState = remember { SnackbarHostState() }
+
+        LaunchedEffect(Unit) {
+            vm.snackbarMessage.collect { msg ->
+                snackbarHostState.showSnackbar(msg)
+            }
+        }
 
         Scaffold(
             topBar = {
@@ -95,6 +110,7 @@ class TodoListScreen : Screen {
                     Icon(Icons.Default.Add, "Add Todo")
                 }
             },
+            snackbarHost = { SnackbarHost(snackbarHostState) },
         ) { padding ->
             Column(modifier = Modifier.fillMaxSize().padding(padding).padding(horizontal = 16.dp)) {
                 OutlinedTextField(
@@ -134,12 +150,18 @@ class TodoListScreen : Screen {
                 } else {
                     LazyColumn(modifier = Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(4.dp)) {
                         items(todos, key = { it.id }) { todo ->
-                            TodoListItem(
-                                todo = todo,
-                                onToggle = { vm.toggleCompletion(todo.id) },
-                                onClick = { navigator.push(AddEditTodoScreen(todo.id)) },
-                                onDelete = { vm.deleteTodo(todo.id) },
-                            )
+                            AnimatedVisibility(
+                                visible = true,
+                                enter = fadeIn() + slideInVertically(),
+                                exit = fadeOut() + slideOutVertically(),
+                            ) {
+                                TodoListItem(
+                                    todo = todo,
+                                    onToggle = { vm.toggleCompletion(todo.id) },
+                                    onClick = { navigator.push(AddEditTodoScreen(todo.id)) },
+                                    onDelete = { vm.deleteTodo(todo.id) },
+                                )
+                            }
                         }
                     }
                 }
