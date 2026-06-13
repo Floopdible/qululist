@@ -3,6 +3,7 @@ package com.vibetodo.data.local
 import app.cash.sqldelight.coroutines.asFlow
 import app.cash.sqldelight.coroutines.mapToList
 import app.cash.sqldelight.db.SqlDriver
+import com.vibetodo.FocusSessionEntity
 import com.vibetodo.TodoEntity
 import com.vibetodo.db.TodoDb
 import kotlinx.coroutines.Dispatchers
@@ -94,5 +95,29 @@ class DatabaseHelper(private val driver: SqlDriver) {
 
     suspend fun deleteById(id: String) = withContext(Dispatchers.IO) {
         queries.deleteById(id)
+    }
+
+    fun getAllSessions(): List<FocusSessionEntity> {
+        return queries.selectAllSessions().executeAsList()
+    }
+
+    fun getSessionsSince(sinceEpochMillis: Long): List<FocusSessionEntity> {
+        return queries.selectSessionsSince(sinceEpochMillis).executeAsList()
+    }
+
+    suspend fun insertSession(
+        id: String,
+        startTime: Long,
+        endTime: Long,
+        durationMinutes: Int,
+        completed: Long,
+    ) = withContext(Dispatchers.IO) {
+        queries.insertSession(
+            id = id,
+            startTime = startTime,
+            endTime = endTime,
+            durationMinutes = durationMinutes.toLong(),
+            completed = completed,
+        )
     }
 }

@@ -7,7 +7,6 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.List
 import androidx.compose.material.icons.filled.DateRange
 import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
 import androidx.compose.material3.NavigationBar
 import androidx.compose.material3.NavigationBarItem
 import androidx.compose.material3.Scaffold
@@ -26,6 +25,7 @@ import androidx.compose.ui.unit.dp
 import cafe.adriel.voyager.navigator.Navigator
 import cafe.adriel.voyager.transitions.SlideTransition
 import com.vibetodo.data.local.DatabaseHelper
+import com.vibetodo.presentation.focus.FocusOverlay
 import com.vibetodo.presentation.pomodoro.FloatingTimer
 import com.vibetodo.presentation.pomodoro.PomodoroViewModel
 import com.vibetodo.presentation.screens.calendar.CalendarScreen
@@ -51,7 +51,7 @@ fun App() {
             Surface(modifier = Modifier.fillMaxSize()) {
                 var selectedTab by remember { mutableStateOf(0) }
                 val pomodoroVm = koinInject<PomodoroViewModel>()
-                val pomodoroState by pomodoroVm.state.collectAsState()
+                val isFocusMode by pomodoroVm.isFocusMode.collectAsState()
 
                 Scaffold(
                     bottomBar = {
@@ -82,6 +82,13 @@ fun App() {
                             onClose = {},
                             modifier = Modifier.align(Alignment.BottomEnd).padding(12.dp),
                         )
+
+                        if (isFocusMode) {
+                            FocusOverlay(
+                                vm = pomodoroVm,
+                                onDismiss = { pomodoroVm.dismissFocus() },
+                            )
+                        }
                     }
                 }
             }

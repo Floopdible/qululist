@@ -39,3 +39,21 @@ WHERE id = ?;
 
 deleteById:
 DELETE FROM TodoEntity WHERE id = ?;
+
+CREATE TABLE FocusSessionEntity (
+    id TEXT NOT NULL PRIMARY KEY,
+    startTime INTEGER NOT NULL,
+    endTime INTEGER NOT NULL,
+    durationMinutes INTEGER NOT NULL,
+    completed INTEGER NOT NULL DEFAULT 1
+);
+
+selectAllSessions:
+SELECT * FROM FocusSessionEntity ORDER BY startTime DESC;
+
+insertSession:
+INSERT INTO FocusSessionEntity(id, startTime, endTime, durationMinutes, completed)
+VALUES (?, ?, ?, ?, ?);
+
+selectSessionsSince:
+SELECT * FROM FocusSessionEntity WHERE startTime >= ? ORDER BY startTime DESC;

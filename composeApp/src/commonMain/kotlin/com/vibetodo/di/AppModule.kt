@@ -16,7 +16,7 @@ val appModule = module {
     single<SqlDriver> { createSqlDriver() }
     single { DatabaseHelper(get()) }
     single<TodoRepository> { TodoRepositoryImpl(get()) }
-    single { PomodoroViewModel() }
+    single { PomodoroViewModel(get()) }
     factory { CreateTodoUseCase(get()) }
     factory { UpdateTodoUseCase(get()) }
     factory { DeleteTodoUseCase(get()) }
