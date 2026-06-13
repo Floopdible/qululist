@@ -4,6 +4,7 @@ import cafe.adriel.voyager.core.model.ScreenModel
 import cafe.adriel.voyager.core.model.screenModelScope
 import com.vibetodo.domain.model.Priority
 import com.vibetodo.domain.model.Todo
+import com.vibetodo.domain.repository.TodoRepository
 import com.vibetodo.domain.usecase.CreateTodoUseCase
 import com.vibetodo.domain.usecase.UpdateTodoUseCase
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -15,9 +16,10 @@ import kotlinx.datetime.LocalTime
 
 class AddEditTodoViewModel(
     private val todoId: String?,
+    private val initialParentId: String?,
     private val createTodoUseCase: CreateTodoUseCase,
     private val updateTodoUseCase: UpdateTodoUseCase,
-    private val getTodo: (String) -> Todo?,
+    private val todoRepository: TodoRepository,
 ) : ScreenModel {
 
     private val _title = MutableStateFlow("")
@@ -41,6 +43,12 @@ class AddEditTodoViewModel(
     private val _recurrenceRule = MutableStateFlow("WEEKLY")
     val recurrenceRule: StateFlow<String> = _recurrenceRule.asStateFlow()
 
+    private val _parentTodoId = MutableStateFlow(initialParentId)
+    val parentTodoId: StateFlow<String?> = _parentTodoId.asStateFlow()
+
+    private val _availableParents = MutableStateFlow<List<Todo>>(emptyList())
+    val availableParents: StateFlow<List<Todo>> = _availableParents.asStateFlow()
+
     private val _isSaving = MutableStateFlow(false)
     val isSaving: StateFlow<Boolean> = _isSaving.asStateFlow()
 
@@ -48,8 +56,8 @@ class AddEditTodoViewModel(
     val isSaved: StateFlow<Boolean> = _isSaved.asStateFlow()
 
     init {
-        todoId?.let { id ->
-            getTodo(id)?.let { todo ->
+        if (todoId != null) {
+            todoRepository.getTodoById(todoId)?.let { todo ->
                 _title.value = todo.title
                 _description.value = todo.description
                 _dueDate.value = todo.dueDate
@@ -57,6 +65,13 @@ class AddEditTodoViewModel(
                 _priority.value = todo.priority
                 _isRecurring.value = todo.isRecurring
                 _recurrenceRule.value = todo.recurrenceRule ?: "WEEKLY"
+                _parentTodoId.value = todo.parentId
+            }
+        }
+        screenModelScope.launch {
+            todoRepository.getAllTodos().collect { allTodos ->
+                val parents = allTodos.filter { it.parentId == null && it.id != todoId }
+                _availableParents.value = parents
             }
         }
     }
@@ -68,6 +83,7 @@ class AddEditTodoViewModel(
     fun updatePriority(value: Priority) { _priority.value = value }
     fun updateIsRecurring(value: Boolean) { _isRecurring.value = value }
     fun updateRecurrenceRule(value: String) { _recurrenceRule.value = value }
+    fun updateParentTodoId(value: String?) { _parentTodoId.value = value }
 
     private fun validate(): Boolean = _title.value.isNotBlank()
 
@@ -82,11 +98,12 @@ class AddEditTodoViewModel(
                     dueDate = _dueDate.value,
                     dueTime = _dueTime.value,
                     priority = _priority.value,
+                    parentId = _parentTodoId.value,
                     isRecurring = _isRecurring.value,
                     recurrenceRule = if (_isRecurring.value) _recurrenceRule.value else null,
                 )
             } else {
-                val existing = getTodo(todoId) ?: return@launch
+                val existing = todoRepository.getTodoById(todoId) ?: return@launch
                 updateTodoUseCase(
                     existing.copy(
                         title = _title.value.trim(),
@@ -94,6 +111,7 @@ class AddEditTodoViewModel(
                         dueDate = _dueDate.value,
                         dueTime = _dueTime.value,
                         priority = _priority.value,
+                        parentId = _parentTodoId.value,
                         isRecurring = _isRecurring.value,
                         recurrenceRule = if (_isRecurring.value) _recurrenceRule.value else null,
                     )

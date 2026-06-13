@@ -25,6 +25,8 @@ import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.CheckCircle
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.Delete
+import androidx.compose.material.icons.automirrored.filled.KeyboardArrowRight
+import androidx.compose.material.icons.filled.KeyboardArrowDown
 import androidx.compose.material.icons.filled.RadioButtonUnchecked
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material3.AlertDialog
@@ -80,7 +82,7 @@ class TodoListScreen : Screen {
         val deleteUC = koinInject<DeleteTodoUseCase>()
         val toggleUC = koinInject<ToggleTodoUseCase>()
         val vm = rememberScreenModel { TodoListViewModel(todoRepo, createUC, deleteUC, toggleUC) }
-        val todos by vm.todos.collectAsState()
+        val items by vm.displayItems.collectAsState()
         val searchQuery by vm.searchQuery.collectAsState()
         val filter by vm.filter.collectAsState()
         var showQuickAdd by remember { mutableStateOf(false) }
@@ -143,23 +145,28 @@ class TodoListScreen : Screen {
 
                 Spacer(Modifier.height(8.dp))
 
-                if (todos.isEmpty()) {
+                if (items.isEmpty()) {
                     Box(Modifier.weight(1f), contentAlignment = Alignment.Center) {
                         Text("No todos yet. Tap + to add one.", style = MaterialTheme.typography.bodyLarge, color = MaterialTheme.colorScheme.onSurfaceVariant)
                     }
                 } else {
                     LazyColumn(modifier = Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(4.dp)) {
-                        items(todos, key = { it.id }) { todo ->
+                        items(items, key = { it.todo.id + it.depth }) { displayItem ->
                             AnimatedVisibility(
                                 visible = true,
                                 enter = fadeIn() + slideInVertically(),
                                 exit = fadeOut() + slideOutVertically(),
                             ) {
                                 TodoListItem(
-                                    todo = todo,
-                                    onToggle = { vm.toggleCompletion(todo.id) },
-                                    onClick = { navigator.push(AddEditTodoScreen(todo.id)) },
-                                    onDelete = { vm.deleteTodo(todo.id) },
+                                    todo = displayItem.todo,
+                                    depth = displayItem.depth,
+                                    hasSubtasks = displayItem.hasSubtasks,
+                                    isExpanded = displayItem.isExpanded,
+                                    onToggle = { vm.toggleCompletion(displayItem.todo.id) },
+                                    onClick = { navigator.push(AddEditTodoScreen(displayItem.todo.id)) },
+                                    onDelete = { vm.deleteTodo(displayItem.todo.id) },
+                                    onToggleExpand = { vm.toggleParentExpanded(displayItem.todo.id) },
+                                    onAddSubtask = { navigator.push(AddEditTodoScreen(parentId = displayItem.todo.id)) },
                                 )
                             }
                         }
@@ -200,14 +207,24 @@ class TodoListScreen : Screen {
 @Composable
 fun TodoListItem(
     todo: Todo,
+    depth: Int,
+    hasSubtasks: Boolean,
+    isExpanded: Boolean,
     onToggle: () -> Unit,
     onClick: () -> Unit,
     onDelete: () -> Unit,
+    onToggleExpand: () -> Unit,
+    onAddSubtask: () -> Unit,
 ) {
     Card(
-        modifier = Modifier.fillMaxWidth().combinedClickable(onClick = onClick),
+        modifier = Modifier
+            .fillMaxWidth()
+            .combinedClickable(onClick = onClick)
+            .padding(start = (depth * 20).dp),
         colors = CardDefaults.cardColors(
-            containerColor = MaterialTheme.colorScheme.surfaceContainerLow,
+            containerColor = if (depth > 0)
+                MaterialTheme.colorScheme.surfaceContainerLow.copy(alpha = 0.7f)
+            else MaterialTheme.colorScheme.surfaceContainerLow,
         ),
     ) {
         Row(
@@ -222,10 +239,20 @@ fun TodoListItem(
                 )
             }
 
+            if (hasSubtasks) {
+                IconButton(onClick = onToggleExpand, modifier = Modifier.size(24.dp)) {
+                    Icon(
+                        if (isExpanded) Icons.Default.KeyboardArrowDown else Icons.AutoMirrored.Filled.KeyboardArrowRight,
+                        if (isExpanded) "Collapse" else "Expand",
+                        modifier = Modifier.size(18.dp),
+                    )
+                }
+            }
+
             Column(modifier = Modifier.weight(1f)) {
                 Text(
                     text = todo.title,
-                    style = MaterialTheme.typography.bodyLarge,
+                    style = if (depth > 0) MaterialTheme.typography.bodyMedium else MaterialTheme.typography.bodyLarge,
                     maxLines = 1,
                     overflow = TextOverflow.Ellipsis,
                     textDecoration = if (todo.isCompleted) TextDecoration.LineThrough else TextDecoration.None,
@@ -252,6 +279,12 @@ fun TodoListItem(
             PriorityBadge(todo.priority)
 
             Spacer(Modifier.width(4.dp))
+
+            if (depth == 0 && !hasSubtasks) {
+                IconButton(onClick = onAddSubtask, modifier = Modifier.size(28.dp)) {
+                    Icon(Icons.Default.Add, "Add subtask", modifier = Modifier.size(16.dp))
+                }
+            }
 
             IconButton(onClick = onDelete, modifier = Modifier.size(32.dp)) {
                 Icon(Icons.Default.Delete, "Delete", tint = MaterialTheme.colorScheme.error, modifier = Modifier.size(18.dp))

@@ -12,6 +12,7 @@ data class Todo(
     val dueTime: LocalTime? = null,
     val priority: Priority = Priority.Medium,
     val categoryId: String? = null,
+    val parentId: String? = null,
     val isCompleted: Boolean = false,
     val isRecurring: Boolean = false,
     val recurrenceRule: String? = null,

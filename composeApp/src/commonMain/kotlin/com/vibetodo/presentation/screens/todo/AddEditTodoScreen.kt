@@ -56,7 +56,7 @@ import kotlinx.datetime.atStartOfDayIn
 import kotlinx.datetime.toLocalDateTime
 import org.koin.compose.koinInject
 
-data class AddEditTodoScreen(val todoId: String? = null) : Screen {
+data class AddEditTodoScreen(val todoId: String? = null, val parentId: String? = null) : Screen {
 
     @OptIn(ExperimentalMaterial3Api::class)
     @Composable
@@ -65,7 +65,7 @@ data class AddEditTodoScreen(val todoId: String? = null) : Screen {
         val createUC = koinInject<CreateTodoUseCase>()
         val updateUC = koinInject<UpdateTodoUseCase>()
         val todoRepo = koinInject<TodoRepository>()
-        val screenModel = rememberScreenModel { AddEditTodoViewModel(todoId, createUC, updateUC, { todoRepo.getTodoById(it) }) }
+        val screenModel = rememberScreenModel { AddEditTodoViewModel(todoId, parentId, createUC, updateUC, todoRepo) }
         val title by screenModel.title.collectAsState()
         val description by screenModel.description.collectAsState()
         val dueDate by screenModel.dueDate.collectAsState()
@@ -73,6 +73,8 @@ data class AddEditTodoScreen(val todoId: String? = null) : Screen {
         val priority by screenModel.priority.collectAsState()
         val isRecurring by screenModel.isRecurring.collectAsState()
         val recurrenceRule by screenModel.recurrenceRule.collectAsState()
+        val parentTodoId by screenModel.parentTodoId.collectAsState()
+        val availableParents by screenModel.availableParents.collectAsState()
         val isSaving by screenModel.isSaving.collectAsState()
         val isSaved by screenModel.isSaved.collectAsState()
 
@@ -80,6 +82,7 @@ data class AddEditTodoScreen(val todoId: String? = null) : Screen {
         var showTimePicker by remember { mutableStateOf(false) }
         var priorityExpanded by remember { mutableStateOf(false) }
         var recurringExpanded by remember { mutableStateOf(false) }
+        var parentExpanded by remember { mutableStateOf(false) }
 
         if (isSaved) {
             navigator.pop()
@@ -191,6 +194,43 @@ data class AddEditTodoScreen(val todoId: String? = null) : Screen {
                                     onClick = {
                                         screenModel.updateRecurrenceRule(code)
                                         recurringExpanded = false
+                                    },
+                                )
+                            }
+                        }
+                    }
+                }
+
+                if (availableParents.isNotEmpty() && todoId == null) {
+                    ExposedDropdownMenuBox(
+                        expanded = parentExpanded,
+                        onExpandedChange = { parentExpanded = !parentExpanded },
+                    ) {
+                        val parentName = parentTodoId?.let { id ->
+                            availableParents.find { it.id == id }?.title ?: "Select parent"
+                        } ?: "None (top-level)"
+                        OutlinedTextField(
+                            value = parentName,
+                            onValueChange = {},
+                            readOnly = true,
+                            label = { Text("Parent Task") },
+                            trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = parentExpanded) },
+                            modifier = Modifier.fillMaxWidth().menuAnchor(),
+                        )
+                        ExposedDropdownMenu(expanded = parentExpanded, onDismissRequest = { parentExpanded = false }) {
+                            DropdownMenuItem(
+                                text = { Text("None (top-level)") },
+                                onClick = {
+                                    screenModel.updateParentTodoId(null)
+                                    parentExpanded = false
+                                },
+                            )
+                            availableParents.forEach { p ->
+                                DropdownMenuItem(
+                                    text = { Text(p.title) },
+                                    onClick = {
+                                        screenModel.updateParentTodoId(p.id)
+                                        parentExpanded = false
                                     },
                                 )
                             }

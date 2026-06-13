@@ -6,6 +6,7 @@ CREATE TABLE TodoEntity (
     dueTimeMinutes INTEGER,
     priority TEXT NOT NULL DEFAULT 'Medium',
     categoryId TEXT,
+    parentId TEXT,
     isCompleted INTEGER NOT NULL DEFAULT 0,
     isRecurring INTEGER NOT NULL DEFAULT 0,
     recurrenceRule TEXT,
@@ -28,13 +29,16 @@ SELECT * FROM TodoEntity WHERE priority = ? ORDER BY updatedAt DESC;
 searchByTitle:
 SELECT * FROM TodoEntity WHERE title LIKE '%' || ? || '%' ORDER BY updatedAt DESC;
 
+selectByParentId:
+SELECT * FROM TodoEntity WHERE parentId = ? ORDER BY updatedAt ASC;
+
 insert:
-INSERT INTO TodoEntity(id, title, description, dueDate, dueTimeMinutes, priority, categoryId, isCompleted, isRecurring, recurrenceRule, createdAt, updatedAt)
-VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);
+INSERT INTO TodoEntity(id, title, description, dueDate, dueTimeMinutes, priority, categoryId, parentId, isCompleted, isRecurring, recurrenceRule, createdAt, updatedAt)
+VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);
 
 update:
 UPDATE TodoEntity
-SET title = ?, description = ?, dueDate = ?, dueTimeMinutes = ?, priority = ?, categoryId = ?, isCompleted = ?, isRecurring = ?, recurrenceRule = ?, updatedAt = ?
+SET title = ?, description = ?, dueDate = ?, dueTimeMinutes = ?, priority = ?, categoryId = ?, parentId = ?, isCompleted = ?, isRecurring = ?, recurrenceRule = ?, updatedAt = ?
 WHERE id = ?;
 
 deleteById:

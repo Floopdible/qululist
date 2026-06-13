@@ -29,6 +29,10 @@ class TodoRepositoryImpl(private val helper: DatabaseHelper) : TodoRepository {
         return helper.getTodosByCompletion(isCompleted).map { list -> list.map { it.toDomain() } }
     }
 
+    override fun getTodosByParentId(parentId: String): List<Todo> {
+        return helper.getTodosByParentId(parentId).map { it.toDomain() }
+    }
+
     override suspend fun insertTodo(todo: Todo) {
         helper.insert(
             id = todo.id,
@@ -38,6 +42,7 @@ class TodoRepositoryImpl(private val helper: DatabaseHelper) : TodoRepository {
             dueTimeMinutes = todo.dueTime?.let { (it.hour * 60L + it.minute) },
             priority = todo.priority.name,
             categoryId = todo.categoryId,
+            parentId = todo.parentId,
             isCompleted = if (todo.isCompleted) 1L else 0L,
             isRecurring = if (todo.isRecurring) 1L else 0L,
             recurrenceRule = todo.recurrenceRule,
@@ -55,6 +60,7 @@ class TodoRepositoryImpl(private val helper: DatabaseHelper) : TodoRepository {
             dueTimeMinutes = todo.dueTime?.let { (it.hour * 60L + it.minute) },
             priority = todo.priority.name,
             categoryId = todo.categoryId,
+            parentId = todo.parentId,
             isCompleted = if (todo.isCompleted) 1L else 0L,
             isRecurring = if (todo.isRecurring) 1L else 0L,
             recurrenceRule = todo.recurrenceRule,
@@ -87,6 +93,7 @@ private fun TodoEntity.toDomain(): Todo {
         dueTime = time,
         priority = Priority.fromString(priority),
         categoryId = categoryId,
+        parentId = parentId,
         isCompleted = isCompleted != 0L,
         isRecurring = isRecurring != 0L,
         recurrenceRule = recurrenceRule,

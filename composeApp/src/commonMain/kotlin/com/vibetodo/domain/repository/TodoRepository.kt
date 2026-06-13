@@ -7,6 +7,7 @@ interface TodoRepository {
     fun getAllTodos(): Flow<List<Todo>>
     fun getTodoById(id: String): Todo?
     fun getTodosByCompletion(isCompleted: Boolean): Flow<List<Todo>>
+    fun getTodosByParentId(parentId: String): List<Todo>
     suspend fun insertTodo(todo: Todo)
     suspend fun updateTodo(todo: Todo)
     suspend fun deleteTodo(id: String)

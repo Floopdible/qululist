@@ -18,6 +18,9 @@ class DatabaseHelper(private val driver: SqlDriver) {
     suspend fun createSchema() {
         withContext(Dispatchers.IO) {
             TodoDb.Schema.create(driver)
+            try {
+                driver.execute(null, "ALTER TABLE TodoEntity ADD COLUMN parentId TEXT", 0)
+            } catch (_: Exception) { }
         }
     }
 
@@ -47,6 +50,7 @@ class DatabaseHelper(private val driver: SqlDriver) {
         dueTimeMinutes: Long?,
         priority: String,
         categoryId: String?,
+        parentId: String?,
         isCompleted: Long,
         isRecurring: Long,
         recurrenceRule: String?,
@@ -61,6 +65,7 @@ class DatabaseHelper(private val driver: SqlDriver) {
             dueTimeMinutes = dueTimeMinutes,
             priority = priority,
             categoryId = categoryId,
+            parentId = parentId,
             isCompleted = isCompleted,
             isRecurring = isRecurring,
             recurrenceRule = recurrenceRule,
@@ -77,6 +82,7 @@ class DatabaseHelper(private val driver: SqlDriver) {
         dueTimeMinutes: Long?,
         priority: String,
         categoryId: String?,
+        parentId: String?,
         isCompleted: Long,
         isRecurring: Long,
         recurrenceRule: String?,
@@ -89,6 +95,7 @@ class DatabaseHelper(private val driver: SqlDriver) {
             dueTimeMinutes = dueTimeMinutes,
             priority = priority,
             categoryId = categoryId,
+            parentId = parentId,
             isCompleted = isCompleted,
             isRecurring = isRecurring,
             recurrenceRule = recurrenceRule,
@@ -116,6 +123,7 @@ class DatabaseHelper(private val driver: SqlDriver) {
                     dueTimeMinutes = todo.dueTimeMinutes,
                     priority = todo.priority,
                     categoryId = todo.categoryId,
+                    parentId = todo.parentId,
                     isCompleted = todo.isCompleted,
                     isRecurring = todo.isRecurring,
                     recurrenceRule = todo.recurrenceRule,
@@ -124,6 +132,10 @@ class DatabaseHelper(private val driver: SqlDriver) {
                 )
             }
         }
+    }
+
+    fun getTodosByParentId(parentId: String): List<TodoEntity> {
+        return queries.selectByParentId(parentId).executeAsList()
     }
 
     fun getAllSessions(): List<FocusSessionEntity> {

@@ -14,6 +14,7 @@ class CreateTodoUseCase(private val repository: TodoRepository) {
         dueTime: kotlinx.datetime.LocalTime? = null,
         priority: Priority = Priority.Medium,
         categoryId: String? = null,
+        parentId: String? = null,
         isRecurring: Boolean = false,
         recurrenceRule: String? = null,
     ) {
@@ -26,6 +27,7 @@ class CreateTodoUseCase(private val repository: TodoRepository) {
             dueTime = dueTime,
             priority = priority,
             categoryId = categoryId,
+            parentId = parentId,
             isCompleted = false,
             isRecurring = isRecurring,
             recurrenceRule = recurrenceRule,
