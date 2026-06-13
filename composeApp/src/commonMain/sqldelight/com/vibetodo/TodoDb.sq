@@ -1,4 +1,4 @@
-CREATE TABLE TodoEntity (
+CREATE TABLE IF NOT EXISTS TodoEntity (
     id TEXT NOT NULL PRIMARY KEY,
     title TEXT NOT NULL,
     description TEXT NOT NULL DEFAULT '',
@@ -47,7 +47,7 @@ DELETE FROM TodoEntity WHERE id = ?;
 deleteAllTodos:
 DELETE FROM TodoEntity;
 
-CREATE TABLE FocusSessionEntity (
+CREATE TABLE IF NOT EXISTS FocusSessionEntity (
     id TEXT NOT NULL PRIMARY KEY,
     startTime INTEGER NOT NULL,
     endTime INTEGER NOT NULL,
@@ -65,7 +65,7 @@ VALUES (?, ?, ?, ?, ?);
 selectSessionsSince:
 SELECT * FROM FocusSessionEntity WHERE startTime >= ? ORDER BY startTime DESC;
 
-CREATE TABLE SyncConfigEntity (
+CREATE TABLE IF NOT EXISTS SyncConfigEntity (
     key TEXT NOT NULL PRIMARY KEY,
     value TEXT NOT NULL
 );

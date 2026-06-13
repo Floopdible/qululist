@@ -37,6 +37,7 @@ kotlin {
             dependencies {
                 implementation(compose.desktop.currentOs)
                 implementation(libs.sqldelight.jdbc.driver)
+                implementation(libs.kotlinx.coroutines.swing)
             }
         }
     }

@@ -7,7 +7,10 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.List
 import androidx.compose.material.icons.filled.DateRange
 import androidx.compose.material.icons.filled.Settings
+import androidx.compose.material.icons.filled.Timer
 import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.NavigationBar
 import androidx.compose.material3.NavigationBarItem
 import androidx.compose.material3.Scaffold
@@ -55,6 +58,8 @@ fun App() {
                 val pomodoroVm = koinInject<PomodoroViewModel>()
                 val isFocusMode by pomodoroVm.isFocusMode.collectAsState()
 
+                var showTimer by remember { mutableStateOf(true) }
+
                 Scaffold(
                     bottomBar = {
                         NavigationBar {
@@ -86,11 +91,24 @@ fun App() {
                             2 -> Navigator(SettingsScreen()) { SlideTransition(it) }
                         }
 
-                        FloatingTimer(
-                            vm = pomodoroVm,
-                            onClose = {},
-                            modifier = Modifier.align(Alignment.BottomEnd).padding(12.dp),
-                        )
+                        if (showTimer) {
+                            FloatingTimer(
+                                vm = pomodoroVm,
+                                onClose = { showTimer = false },
+                                modifier = Modifier.align(Alignment.BottomStart).padding(12.dp),
+                            )
+                        } else {
+                            IconButton(
+                                onClick = { showTimer = true },
+                                modifier = Modifier.align(Alignment.BottomStart).padding(12.dp),
+                            ) {
+                                Icon(
+                                    Icons.Default.Timer,
+                                    contentDescription = "Show Timer",
+                                    tint = MaterialTheme.colorScheme.primary,
+                                )
+                            }
+                        }
 
                         if (isFocusMode) {
                             FocusOverlay(
