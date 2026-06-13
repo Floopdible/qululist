@@ -6,6 +6,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.List
 import androidx.compose.material.icons.filled.DateRange
+import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material3.Icon
 import androidx.compose.material3.NavigationBar
 import androidx.compose.material3.NavigationBarItem
@@ -29,6 +30,7 @@ import com.vibetodo.presentation.focus.FocusOverlay
 import com.vibetodo.presentation.pomodoro.FloatingTimer
 import com.vibetodo.presentation.pomodoro.PomodoroViewModel
 import com.vibetodo.presentation.screens.calendar.CalendarScreen
+import com.vibetodo.presentation.screens.settings.SettingsScreen
 import com.vibetodo.presentation.screens.todo.TodoListScreen
 import com.vibetodo.presentation.theme.QuluListTheme
 import kotlinx.coroutines.launch
@@ -68,6 +70,12 @@ fun App() {
                                 icon = { Icon(Icons.Default.DateRange, "Calendar") },
                                 label = { Text("Calendar") },
                             )
+                            NavigationBarItem(
+                                selected = selectedTab == 2,
+                                onClick = { selectedTab = 2 },
+                                icon = { Icon(Icons.Default.Settings, "Settings") },
+                                label = { Text("Settings") },
+                            )
                         }
                     },
                 ) { padding ->
@@ -75,6 +83,7 @@ fun App() {
                         when (selectedTab) {
                             0 -> Navigator(TodoListScreen()) { SlideTransition(it) }
                             1 -> Navigator(CalendarScreen()) { SlideTransition(it) }
+                            2 -> Navigator(SettingsScreen()) { SlideTransition(it) }
                         }
 
                         FloatingTimer(

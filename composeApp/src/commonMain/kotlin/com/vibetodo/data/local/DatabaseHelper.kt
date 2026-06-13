@@ -25,6 +25,10 @@ class DatabaseHelper(private val driver: SqlDriver) {
         return queries.selectAll().asFlow().mapToList(Dispatchers.IO)
     }
 
+    fun getAllTodosSnapshot(): List<TodoEntity> {
+        return queries.selectAll().executeAsList()
+    }
+
     fun getTodoById(id: String): TodoEntity? {
         return queries.selectById(id).executeAsOneOrNull()
     }
@@ -97,6 +101,31 @@ class DatabaseHelper(private val driver: SqlDriver) {
         queries.deleteById(id)
     }
 
+    suspend fun deleteAllTodos() = withContext(Dispatchers.IO) {
+        queries.deleteAllTodos()
+    }
+
+    suspend fun insertAll(todos: List<TodoEntity>) = withContext(Dispatchers.IO) {
+        queries.transaction {
+            todos.forEach { todo ->
+                queries.insert(
+                    id = todo.id,
+                    title = todo.title,
+                    description = todo.description,
+                    dueDate = todo.dueDate,
+                    dueTimeMinutes = todo.dueTimeMinutes,
+                    priority = todo.priority,
+                    categoryId = todo.categoryId,
+                    isCompleted = todo.isCompleted,
+                    isRecurring = todo.isRecurring,
+                    recurrenceRule = todo.recurrenceRule,
+                    createdAt = todo.createdAt,
+                    updatedAt = todo.updatedAt,
+                )
+            }
+        }
+    }
+
     fun getAllSessions(): List<FocusSessionEntity> {
         return queries.selectAllSessions().executeAsList()
     }
@@ -119,5 +148,17 @@ class DatabaseHelper(private val driver: SqlDriver) {
             durationMinutes = durationMinutes.toLong(),
             completed = completed,
         )
+    }
+
+    fun getConfig(key: String): String? {
+        return queries.getConfig(key).executeAsOneOrNull()
+    }
+
+    suspend fun setConfig(key: String, value: String) = withContext(Dispatchers.IO) {
+        queries.setConfig(key, value)
+    }
+
+    suspend fun deleteConfig(key: String) = withContext(Dispatchers.IO) {
+        queries.deleteConfig(key)
     }
 }

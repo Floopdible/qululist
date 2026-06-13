@@ -40,6 +40,9 @@ WHERE id = ?;
 deleteById:
 DELETE FROM TodoEntity WHERE id = ?;
 
+deleteAllTodos:
+DELETE FROM TodoEntity;
+
 CREATE TABLE FocusSessionEntity (
     id TEXT NOT NULL PRIMARY KEY,
     startTime INTEGER NOT NULL,
@@ -57,3 +60,17 @@ VALUES (?, ?, ?, ?, ?);
 
 selectSessionsSince:
 SELECT * FROM FocusSessionEntity WHERE startTime >= ? ORDER BY startTime DESC;
+
+CREATE TABLE SyncConfigEntity (
+    key TEXT NOT NULL PRIMARY KEY,
+    value TEXT NOT NULL
+);
+
+getConfig:
+SELECT value FROM SyncConfigEntity WHERE key = ?;
+
+setConfig:
+INSERT OR REPLACE INTO SyncConfigEntity(key, value) VALUES (?, ?);
+
+deleteConfig:
+DELETE FROM SyncConfigEntity WHERE key = ?;

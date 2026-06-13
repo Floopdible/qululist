@@ -4,6 +4,7 @@ import app.cash.sqldelight.db.SqlDriver
 import com.vibetodo.data.local.DatabaseHelper
 import com.vibetodo.data.local.createSqlDriver
 import com.vibetodo.data.repository.TodoRepositoryImpl
+import com.vibetodo.data.sync.SyncService
 import com.vibetodo.domain.repository.TodoRepository
 import com.vibetodo.domain.usecase.CreateTodoUseCase
 import com.vibetodo.domain.usecase.DeleteTodoUseCase
@@ -17,6 +18,7 @@ val appModule = module {
     single { DatabaseHelper(get()) }
     single<TodoRepository> { TodoRepositoryImpl(get()) }
     single { PomodoroViewModel(get()) }
+    single { SyncService(get()) }
     factory { CreateTodoUseCase(get()) }
     factory { UpdateTodoUseCase(get()) }
     factory { DeleteTodoUseCase(get()) }
