@@ -46,7 +46,7 @@ private val DarkColors = darkColorScheme(
 )
 
 @Composable
-fun VibeTodoTheme(
+fun QuluListTheme(
     darkTheme: Boolean = isSystemInDarkTheme(),
     content: @Composable () -> Unit,
 ) {

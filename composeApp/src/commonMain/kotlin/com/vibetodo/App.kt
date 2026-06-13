@@ -10,7 +10,7 @@ import cafe.adriel.voyager.navigator.Navigator
 import cafe.adriel.voyager.transitions.SlideTransition
 import com.vibetodo.data.local.DatabaseHelper
 import com.vibetodo.presentation.screens.todo.TodoListScreen
-import com.vibetodo.presentation.theme.VibeTodoTheme
+import com.vibetodo.presentation.theme.QuluListTheme
 import kotlinx.coroutines.launch
 import org.koin.compose.KoinApplication
 import org.koin.compose.koinInject
@@ -27,7 +27,7 @@ fun App() {
             helper.createSchema()
         }
 
-        VibeTodoTheme {
+        QuluListTheme {
             Surface(modifier = Modifier.fillMaxSize()) {
                 Navigator(TodoListScreen()) { navigator ->
                     SlideTransition(navigator)

@@ -13,5 +13,5 @@ dependencyResolutionManagement {
     }
 }
 
-rootProject.name = "vibe-todo"
+rootProject.name = "qululist"
 include(":composeApp")
